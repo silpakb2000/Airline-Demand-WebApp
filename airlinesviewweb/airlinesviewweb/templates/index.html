@@ -1,0 +1,1053 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Flight Demand Trends</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { padding: 8px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+
+    <h1>Recent Flights</h1>
+
+    <h2>Top 3 Most Popular Routes</h2>
+    <ul>
+        {% for route, count in top_routes %}
+            <li>{{ route }} — {{ count }} flights</li>
+        {% endfor %}
+    </ul>
+
+    <canvas id="routeChart" width="400" height="200"></canvas>
+    <h2>Filter Flights</h2>
+<form method="GET" action="/">
+    <label for="city">Departure City:</label>
+    <select name="city" id="city">
+        <option value="">All</option>
+        {% for city in cities %}
+            <option value="{{ city }}" {% if city == selected_city %}selected{% endif %}>{{ city }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="airline">Airline:</label>
+    <select name="airline" id="airline">
+        <option value="">All</option>
+        {% for airline in airlines %}
+            <option value="{{ airline }}" {% if airline == selected_airline %}selected{% endif %}>{{ airline }}</option>
+        {% endfor %}
+    </select>
+        <label for="date">Flight Date:</label>
+    <input type="date" name="date" id="date" value="{{ selected_date }}">
+    <button type="submit">Apply Filters</button>
+</form>
+ <form method="GET" action="/download">
+        <input type="hidden" name="city" value="{{ selected_city }}">
+        <input type="hidden" name="airline" value="{{ selected_airline }}">
+        <input type="hidden" name="date" value="{{ selected_date }}">
+        <button type="submit">📥 Download CSV</button>
+    </form>
+
+    <table>
+        <tr>
+            <th>Airline</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Status</th>
+            <th>Date</th>
+        </tr>
+        {% for flight in flights %}
+        <tr>
+            <td>{{ flight.airline.name }}</td>
+            <td>{{ flight.departure.airport }}</td>
+            <td>{{ flight.arrival.airport }}</td>
+            <td>{{ flight.flight_status }}</td>
+            <td>{{ flight.departure.scheduled }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <script>
+        const routeLabels = {{ labels|tojson }};
+        const routeValues = {{ values|tojson }};
+
+        const ctx = document.getElementById('routeChart').getContext('2d');
+        const routeChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: routeLabels,
+                datasets: [{
+                    label: 'Top Routes (by flight count)',
+                    data: routeValues,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html> -->
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Flight Demand Trends</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { padding: 8px; border: 1px solid #ccc; }
+        form { margin-bottom: 20px; }
+        pre { white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Flight Demand Dashboard</h1>
+
+    <h2>Filter Flights</h2>
+    <form method="GET" action="/">
+        <label for="city">Departure City:</label>
+        <select name="city" id="city">
+            <option value="">All</option>
+            {% for city in cities %}
+                <option value="{{ city }}" {% if city == selected_city %}selected{% endif %}>{{ city }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="airline">Airline:</label>
+        <select name="airline" id="airline">
+            <option value="">All</option>
+            {% for airline in airlines %}
+                <option value="{{ airline }}" {% if airline == selected_airline %}selected{% endif %}>{{ airline }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="date">Flight Date:</label>
+        <input type="date" name="date" id="date" value="{{ selected_date }}">
+
+        <button type="submit">Apply Filters</button>
+    </form>
+
+    <form method="GET" action="/download">
+        <input type="hidden" name="city" value="{{ selected_city }}">
+        <input type="hidden" name="airline" value="{{ selected_airline }}">
+        <input type="hidden" name="date" value="{{ selected_date }}">
+        <button type="submit">📥 Download CSV</button>
+    </form>
+
+    <h2>Top 5 Popular Routes</h2>
+    <ul>
+        {% for route, count in top_routes %}
+            <li>{{ route }} — {{ count }} flights</li>
+        {% endfor %}
+    </ul>
+
+    <canvas id="routeChart" width="400" height="200"></canvas>
+    <h2>✈️ Airline-wise Distribution (Pie Chart)</h2>
+<canvas id="airlineChart" width="400" height="200"></canvas>
+
+    <h2>🧠 AI-Powered Flight Demand Summary</h2>
+    <div style="background: #f4f4f4; padding: 15px; border-left: 5px solid #007acc;">
+        <pre>{{ summary }}</pre>
+    </div>
+
+    <table>
+        <tr>
+            <th>Airline</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Status</th>
+            <th>Date</th>
+        </tr>
+        {% for flight in flights %}
+        <tr>
+            <td>{{ flight.airline.name }}</td>
+            <td>{{ flight.departure.airport }}</td>
+            <td>{{ flight.arrival.airport }}</td>
+            <td>{{ flight.flight_status }}</td>
+            <td>{{ flight.departure.scheduled }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <script>
+        const routeLabels = {{ labels|tojson }};
+        const routeValues = {{ values|tojson }};
+
+        const ctx = document.getElementById('routeChart').getContext('2d');
+        const routeChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: routeLabels,
+                datasets: [{
+                    label: 'Top Routes (by flight count)',
+                    data: routeValues,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+         const airlineLabels = {{ airline_labels|tojson }};
+    const airlineValues = {{ airline_values|tojson }};
+
+    const ctx2 = document.getElementById('airlineChart').getContext('2d');
+    const airlineChart = new Chart(ctx2, {
+        type: 'pie',
+        data: {
+            labels: airlineLabels,
+            datasets: [{
+                label: 'Flights by Airline',
+                data: airlineValues,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.5)',
+                    'rgba(255, 159, 64, 0.5)',
+                    'rgba(255, 205, 86, 0.5)',
+                    'rgba(75, 192, 192, 0.5)',
+                    'rgba(54, 162, 235, 0.5)',
+                    'rgba(153, 102, 255, 0.5)',
+                    'rgba(201, 203, 207, 0.5)'
+                ],
+                borderColor: 'rgba(200, 200, 200, 0.8)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    </script>
+
+    <h2>💬 Ask Questions About Flights</h2>
+<input type="text" id="userInput" placeholder="Ask something like 'most frequent airline'" style="width: 60%; padding: 8px;" />
+<button onclick="askQuestion()">Ask</button>
+
+<div id="chatResponse" style="margin-top: 15px; background: #eee; padding: 10px; display: none;"></div>
+
+<script>
+function askQuestion() {
+    const input = document.getElementById("userInput").value;
+    if (!input) return;
+
+    document.getElementById("chatResponse").style.display = "block";
+    document.getElementById("chatResponse").innerText = "Thinking...";
+
+    fetch('/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: input })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("chatResponse").innerText = data.answer;
+    })
+    .catch(err => {
+        document.getElementById("chatResponse").innerText = "Error: " + err.message;
+    });
+}
+</script>
+
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Flight Analytics Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #64748b;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+            --background-color: #f8fafc;
+            --surface-color: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: url('static/images/flight-image.png') no-repeat center center fixed;
+    background-size: cover;
+    color: var(--text-primary);
+    line-height: 1.6;
+    font-weight: 400;
+    overflow-x: hidden;
+}
+
+        /* Header */
+        .header {
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 400;
+            margin-top: 0.25rem;
+        }
+
+        /* Cards */
+        .card {
+             background: rgba(255, 255, 255, 0.8); /* translucent white */
+    backdrop-filter: blur(6px);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin: 10px 0;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Filters Section */
+        .filters-card {
+    background: rgba(184, 69, 49, 0.82); /* transparent gradient base */
+    color: rgb(235, 80, 80);
+    border: none;
+    margin-bottom: 2rem;
+    backdrop-filter: blur(8px);
+}
+
+
+        .filters-card .card-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .filters-card .form-label {
+            color: white;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control, .form-select {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-outline-success {
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+            background: transparent;
+        }
+
+        .btn-outline-success:hover {
+            background: var(--success-color);
+            color: white;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+             background: rgba(255, 255, 255, 0.8); /* translucent white */
+    backdrop-filter: blur(6px);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin: 10px 0;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+        }
+
+        .stat-icon.flights {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .stat-icon.routes {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .stat-icon.airlines {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        /* Table */
+        .table-container {
+             background: rgba(255, 255, 255, 0.8); /* translucent white */
+    backdrop-filter: blur(6px);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin: 10px 0;
+        }
+
+        .table {
+            margin: 0;
+            font-size: 0.875rem;
+        }
+
+        .table th {
+            background: var(--background-color);
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.75rem;
+            padding: 1rem;
+        }
+
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table tbody tr:hover {
+            background: var(--background-color);
+        }
+
+        /* Status badges */
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .status-active {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-delayed {
+            background: rgba(217, 119, 6, 0.1);
+            color: var(--warning-color);
+        }
+
+        .status-cancelled {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--danger-color);
+        }
+
+        /* Chat Interface */
+        .chat-interface {
+ background: rgba(238, 235, 233, 0.954); /* translucent white */
+    backdrop-filter: blur(0px);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin: 10px 0;
+        }
+
+        .chat-input-group {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: var(--background-color);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .chat-response {
+            background: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 1rem;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            padding: 1rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .stat-card {
+                margin-bottom: 1rem;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+        }
+
+        /* Loading States */
+        .loading {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1>
+                        <i data-lucide="plane" class="text-primary"></i>
+                        Flight Analytics Dashboard
+                    </h1>
+                    <p class="subtitle">Real-time flight data insights and analytics</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="d-flex justify-content-end gap-2">
+                        <button class="btn btn-outline-success">
+                            <i data-lucide="download" width="16" height="16"></i>
+                            Export Data
+                        </button>
+                        <button class="btn btn-primary">
+                            <i data-lucide="refresh-cw" width="16" height="16"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container py-4">
+        <!-- Filters -->
+        <div class="card filters-card">
+            <div class="card-header">
+                <i data-lucide="filter" width="20" height="20"></i>
+                Advanced Filters
+            </div>
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="city" class="form-label">Departure City</label>
+                        <select name="city" id="city" class="form-select">
+                            <option value="">All Cities</option>
+                            {% for city in cities %}
+                                <option value="{{ city }}" {% if city == selected_city %}selected{% endif %}>{{ city }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="airline" class="form-label">Airline</label>
+                        <select name="airline" id="airline" class="form-select">
+                            <option value="">All Airlines</option>
+                            {% for airline in airlines %}
+                                <option value="{{ airline }}" {% if airline == selected_airline %}selected{% endif %}>{{ airline }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="date" class="form-label">Travel Date</label>
+                        <input type="date" name="date" id="date" value="{{ selected_date }}" class="form-control">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i data-lucide="search" width="16" height="16"></i>
+                            Apply Filters
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="stat-card fade-in">
+                    <div class="stat-icon flights">
+                        <i data-lucide="plane" width="24" height="24"></i>
+                    </div>
+                    <div class="stat-number">{{ flights|length }}</div>
+                    <div class="stat-label">Total Flights</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card fade-in">
+                    <div class="stat-icon routes">
+                        <i data-lucide="route" width="24" height="24"></i>
+                    </div>
+                    <div class="stat-number">{{ labels|length }}</div>
+                    <div class="stat-label">Active Routes</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card fade-in">
+                    <div class="stat-icon airlines">
+                        <i data-lucide="building" width="24" height="24"></i>
+                    </div>
+                    <div class="stat-number">{{ airline_labels|length }}</div>
+                    <div class="stat-label">Airlines</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="row mb-4">
+            <div class="col-lg-7">
+                <div class="card">
+                    <div class="card-header">
+                        <i data-lucide="bar-chart-3" width="20" height="20"></i>
+                        Popular Routes Analysis
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="routeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="card">
+                    <div class="card-header">
+                        <i data-lucide="pie-chart" width="20" height="20"></i>
+                        Market Share Distribution
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="airlineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Insights -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i data-lucide="brain" width="20" height="20"></i>
+                AI-Powered Insights
+            </div>
+            <div class="card-body">
+                <div class="chat-response">{{ summary }}</div>
+            </div>
+        </div>
+
+        <!-- Flight Data Table -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i data-lucide="table" width="20" height="20"></i>
+                Flight Schedule Details
+            </div>
+            <div class="table-container">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Airline</th>
+                                <th>Route</th>
+                                <th>Status</th>
+                                <th>Departure</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for flight in flights %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i data-lucide="plane" width="16" height="16" class="text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">{{ flight.airline.name }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fw-medium">{{ flight.departure.airport }}</span>
+                                        <i data-lucide="arrow-right" width="16" height="16" class="mx-2 text-muted"></i>
+                                        <span class="fw-medium">{{ flight.arrival.airport }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-active">{{ flight.flight_status }}</span>
+                                </td>
+                                <td>
+                                    <div class="text-muted">{{ flight.departure.scheduled }}</div>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i data-lucide="eye" width="14" height="14"></i>
+                                        View
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Chat Interface -->
+        <div class="card chat-interface">
+            <div class="card-header">
+                <i data-lucide="message-circle" width="20" height="20"></i>
+                AI Flight Assistant
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Ask me anything about your flight data and I'll provide insights and analysis.</p>
+                <div id="chatResponse" class="chat-response" style="display: none;"></div>
+            </div>
+            <div class="chat-input-group">
+                <input type="text" id="userInput" class="chat-input" placeholder="e.g., Which airline has the most flights today?">
+                <button class="btn btn-primary" onclick="askQuestion()">
+                    <i data-lucide="send" width="16" height="16"></i>
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Chart data
+        const routeLabels = {{ labels|tojson if labels else []|tojson }};
+        const routeValues = {{ values|tojson if values else []|tojson }};
+        const airlineLabels = {{ airline_labels|tojson if airline_labels else []|tojson }};
+        const airlineValues = {{ airline_values|tojson if airline_values else []|tojson }};
+
+        // Chart configurations
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        usePointStyle: true,
+                        font: {
+                            family: 'Inter',
+                            size: 12
+                        }
+                    }
+                }
+            },
+            layout: {
+                padding: 20
+            }
+        };
+
+        // Routes Chart
+        const ctx1 = document.getElementById('routeChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: routeLabels,
+                datasets: [{
+                    label: 'Flight Count',
+                    data: routeValues,
+                    backgroundColor: 'rgba(37, 99, 235, 0.8)',
+                    borderColor: 'rgba(37, 99, 235, 1)',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Inter',
+                                size: 11
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Inter',
+                                size: 11
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Airline Chart
+        const ctx2 = document.getElementById('airlineChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: airlineLabels,
+                datasets: [{
+                    label: 'Flights',
+                    data: airlineValues,
+                    backgroundColor: [
+                        '#667eea',
+                        '#764ba2',
+                        '#f093fb',
+                        '#f5576c',
+                        '#4facfe',
+                        '#00f2fe',
+                        '#43e97b',
+                        '#38f9d7'
+                    ],
+                    borderWidth: 3,
+                    borderColor: '#ffffff',
+                    hoverBorderWidth: 4
+                }]
+            },
+            options: {
+                ...chartOptions,
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                family: 'Inter',
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Chat functionality
+        function askQuestion() {
+            const input = document.getElementById("userInput");
+            const responseDiv = document.getElementById("chatResponse");
+            
+            if (!input.value.trim()) return;
+
+            responseDiv.style.display = "block";
+            responseDiv.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="loading me-2"></div>
+                    <span>Processing your question...</span>
+                </div>
+            `;
+
+            fetch('/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: input.value })
+            })
+            .then(res => res.json())
+            .then(data => {
+                responseDiv.innerHTML = `
+                    <div class="d-flex align-items-start">
+                        <i data-lucide="bot" width="20" height="20" class="text-primary me-2 mt-1"></i>
+                        <div>${data.answer}</div>
+                    </div>
+                `;
+                lucide.createIcons();
+            })
+            .catch(err => {
+                responseDiv.innerHTML = `
+                    <div class="d-flex align-items-start text-danger">
+                        <i data-lucide="alert-circle" width="20" height="20" class="me-2 mt-1"></i>
+                        <div>Sorry, I encountered an error: ${err.message}</div>
+                    </div>
+                `;
+                lucide.createIcons();
+            });
+
+            input.value = "";
+        }
+
+        // Allow Enter key to submit questions
+        document.getElementById("userInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                askQuestion();
+            }
+        });
+
+        // Add loading states and animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add fade-in animations to cards
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('fade-in');
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

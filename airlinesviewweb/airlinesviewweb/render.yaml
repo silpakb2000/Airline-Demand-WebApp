@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: airline-demand-webapp
+    runtime: python
+    buildCommand: ""
+    startCommand: python app.py
+    envVars:
+      - key: API_KEY
+        value: your_aviationstack_key
+      - key: GROQ_API_KEY
+        value: your_groq_key
